@@ -63,18 +63,38 @@ void forEachSortedNextMoves(const TState& state, const FEval& eval, const F& fun
 }
 
 int best_path_table[20][20];
-template <class TState>
+template <class TState, bool first = true>
 struct Result {
+    void setDepth(int depth)
+    {
+        this->depth = depth;
+    }
     int depth;
     TScore score;
-    std::vector<Move<TState>> moves;
+    /*std::vector<*/ Move<TState> /*>*/ move;
+
+    void setMove(const Move<TState>& move)
+    {
+        this->move = move;
+    }
 };
+
+template <class TState>
+struct Result<TState, false> {
+    TScore score;
+    void setDepth(int) {}
+    void setMove(const Move<TState>&) {}
+};
+
+
 #ifdef NOVERBOSE
 constexpr int verbose_depth = -1;
 #else
 constexpr int verbose_depth = 5;
 #endif
 constexpr int verbose_search_depth = 7;
+
+/*
 template <bool depth0, class TState, class FEval, class FStop>
 std::conditional_t<depth0, Result<TState>, TScore> negaalpha(const TState& state, const FEval& eval, TScore score0, int depth, int search_depth, TScore alpha, TScore beta, bool is_best_path, int table_depth, const FStop& stop)
 {
@@ -97,6 +117,7 @@ std::conditional_t<depth0, Result<TState>, TScore> negaalpha(const TState& state
             std::cerr << std::string(depth, '\t') << "[" << std::endl;
         }
         Result<TState> ret = {};
+        ret.depth = search_depth;
         bool first = true;
         forEachSortedNextMoves(state, eval,
             [&](TScore score, const Move<TState>& move, const NextState<TState>& next_state, int index, bool is_best) {
@@ -146,7 +167,6 @@ std::conditional_t<depth0, Result<TState>, TScore> negaalpha(const TState& state
             std::cerr << std::string(depth, '\t') << "]" << std::endl;
         }
         ret.score = alpha;
-        ret.depth = search_depth;
 
         return ret;
     } else {
@@ -185,17 +205,92 @@ std::conditional_t<depth0, Result<TState>, TScore> negaalpha(const TState& state
         return alpha;
     }
 }
+*/
 
+
+template <bool first_, class TState, class FEval, class FStop>
+Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore score0, int depth, int search_depth, TScore alpha, TScore beta, bool is_best_path, int table_depth, const FStop& stop)
+{
+#define DEBUG(...)                                                        \
+    if (depth <= verbose_depth && search_depth <= verbose_search_depth) { \
+        std::cerr << __VA_ARGS__;                                         \
+    }
+
+    if (stop()) {
+        throw Abort{};
+    }
+
+    Result<TState, first_> ret = {};
+    ret.setDepth(search_depth);
+    if (std::abs(score0) == INF || depth == search_depth) {
+
+        //        if (eval(state) == -INF) {
+        //            std::cerr << state << std::endl;
+        //        std::cerr << eval(state)<< std::endl;
+        //        }
+        //        DEBUG(std::string(depth, '\t') << "[ <fin>" << score0 << " ]\n");
+
+        ret.score = score0;
+        return ret;
+    }
+
+    DEBUG(std::string(depth, '\t') << "[" << std::endl)
+
+    ret.score = -INF - 1;
+    bool first = true;
+    forEachSortedNextMoves(state, eval,
+        [&](TScore eval_score, const Move<TState>& m, const NextState<TState>& next_state, int index, bool is_best) {
+            auto registerBestMove = [&](const auto& m, TScore score) {
+                if (ret.score < score) {
+                    ret.setMove(m);
+                    ret.score = score;
+                    best_path_table[depth][depth] = index;
+                    std::memcpy(&best_path_table[depth][depth + 1], &best_path_table[depth + 1][depth + 1], sizeof(int) * (search_depth - depth - 1));
+                }
+            };
+
+            TScore score = first ? alpha : -negascout<false>(next_state, eval, eval_score, depth + 1, search_depth, -alpha - 1, -alpha, is_best, table_depth, stop).score;
+
+            if (beta <= score) {
+                registerBestMove(m, score);
+                DEBUG(std::string(depth + 1, '\t') << "!!" << m << ": " << score << "+" << std::endl);
+                return false;
+            }
+            if (alpha < score || first) {
+                alpha = score;
+                score = -negascout<false>(next_state, eval, eval_score, depth + 1, search_depth, -beta, -alpha, is_best, table_depth, stop).score;
+                if (beta <= score) {
+                    registerBestMove(m, score);
+                    DEBUG(std::string(depth + 1, '\t') << "!!!" << m << ": " << score << "+" << std::endl);
+                    return false;
+                }
+                if (alpha < score)
+                    alpha = score;
+            }
+            registerBestMove(m, score);
+            DEBUG(std::string(depth + 1, '\t') << m << ": " << score << std::endl);
+            first = false;
+            return true;
+        },
+        (is_best_path && depth < table_depth) ? best_path_table[0][depth] : -1);
+
+
+    DEBUG(std::string(depth, '\t') << "]" << std::endl)
+
+    if (ret.score == -INF - 1)
+        ret.score = -INF;
+    return ret;
+}
 
 template <class TState, class FEval>
-auto negaalpha(const TState& state, const FEval& eval, int depth)
+auto negascout(const TState& state, const FEval& eval, int depth)
 {
-    return negaalpha<true>(state, eval, eval(state), 0, depth, -INF, INF, false, 0, [] { return false; });
+    return negascout<true>(state, eval, eval(state), 0, depth, -INF, INF, false, 0, [] { return false; });
 }
 
 
 template <class TState, class FEval, class FStop>
 auto iterativeDeepeningNegaalpha(const TState& state, const FEval& eval, int depth, int last_depth, const FStop& stop)
 {
-    return negaalpha<true>(state, eval, eval(state), 0, depth, -INF, INF, true, last_depth, stop);
+    return negascout<true>(state, eval, eval(state), 0, depth, -INF, INF, true, last_depth, stop);
 }

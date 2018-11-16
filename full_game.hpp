@@ -7,9 +7,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-#ifndef THRESHOLD
-#define THRESHOLD 18
-#endif
 namespace Game2048Full
 {
 
@@ -248,8 +245,11 @@ inline static auto eval = [](const auto& s) {
         }
         self_num_min = std::min(self_num, self_num_min);
     }*/
-    for (int dir = 0; dir < 3; dir++) {
+
+    //    std::cerr << s << "\n";
+    for (int dir = 0; dir <= 3; dir++) {
         auto [reduction, state] = s.moveReduce(dir);
+        //        std::cerr << dir <<" "<< reduction << std::endl;
         if (reduction == -1)
             continue;
         //        int self_num = 0;

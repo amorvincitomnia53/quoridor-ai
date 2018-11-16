@@ -29,7 +29,7 @@ int continuous(const std::array<std::array<int, 5>, 5>& board)
 #include <iostream>
 
 #ifndef THRESHOLD
-#define THRESHOLD 18
+#define THRESHOLD 0
 #endif
 
 int main()
@@ -72,26 +72,29 @@ int main()
                 try {
 
                     res = iterativeDeepeningNegaalpha(full_state, Game2048Full::eval, depth, depth - 1, [&] { return std::chrono::steady_clock::now() - start_time > 200ms; });
-                    //                    res = iterativeDeepeningNegaalpha(full_state, Game2048Full::eval, depth, depth - 1, [&] { return false; });
+                    //                                        res = iterativeDeepeningNegaalpha(full_state, Game2048Full::eval, depth, depth - 1, [&] { return false; });
 
                     if (std::abs(res.score) == INF)
                         break;
 
                 } catch (Abort&) {
+
+                    //                    std::cerr << "Aborted" << std::endl;
                     break;
                 }
             }
 
-            auto& [depth, score, moves] = res;
+            auto& [depth, score, move] = res;
 
             if (depth == 0) {
-                //uninitialized
-                forEachMove(full_state, [&res](const auto& m, const auto&) {
-                    res.moves.push_back(m);
-                });
+                try {
+                    forEachMove(full_state, [&res](const auto& m, const auto&) {
+                        res.move = m;
+                        throw Abort{};
+                    });
+                } catch (Abort&) {
+                }
             }
-
-            auto& move = moves[std::uniform_int_distribution<size_t>{0, res.moves.size() - 1}(rng)];
             std::cerr << "Info " << depth << " " << score << " " << move << std::endl;
 
             std::cout << "RULD"[move.dir] << ' ' << move.points.size() << ' ' << move.n;
@@ -106,25 +109,27 @@ int main()
                 Result<Game2048::ReducerState> res = {};
                 using namespace std::chrono_literals;
 
-                for (int depth = 1; depth <= 3; depth += 2) {
+                for (int depth = 1; depth <= 15; depth += 2) {
                     try {
                         res = iterativeDeepeningNegaalpha(my_state, Game2048::eval, depth, depth - 2, [&] { return std::chrono::steady_clock::now() - start_time > 100ms; });
-                        //                        res = iterativeDeepeningNegaalpha(my_state, Game2048::eval, depth, depth - 2, [&] { return false; });
+                        //                                                res = iterativeDeepeningNegaalpha(my_state, Game2048::eval, depth, depth - 2, [&] { return false; });
 
                     } catch (Abort&) {
+
                         break;
                     }
                 }
 
-
-                auto& [depth, score, moves] = res;
+                auto& [depth, score, move] = res;
                 if (depth == 0) {
-                    forEachMove(my_state, [&res](const auto& m, const auto&) {
-                        res.moves.push_back(m);
-                    });
+                    try {
+                        forEachMove(my_state, [&res](const auto& m, const auto&) {
+                            res.move = m;
+                            throw Abort{};
+                        });
+                    } catch (Abort&) {
+                    }
                 }
-                auto& move = moves[std::uniform_int_distribution<size_t>{0, res.moves.size() - 1}(rng)];
-
                 std::cerr << "Reducer: " << depth << " " << score << " " << move << std::endl;
                 std::cout << "RULD"[move.dir] << ' ';
 
@@ -137,21 +142,23 @@ int main()
                 for (int depth = 2; depth <= 20; depth += 2) {
                     try {
                         res = iterativeDeepeningNegaalpha(opponent_state, Game2048::eval, depth, depth - 2, [&] { return std::chrono::steady_clock::now() - start_time > 200ms; });
-                        //                        res = iterativeDeepeningNegaalpha(opponent_state, Game2048::eval, depth, depth - 2, [&] { return false; });
+                        //                                                res = iterativeDeepeningNegaalpha(opponent_state, Game2048::eval, depth, depth - 2, [&] { return false; });
 
                     } catch (Abort&) {
                         break;
                     }
                 }
 
-                auto& [depth, score, moves] = res;
+                auto& [depth, score, move] = res;
                 if (depth == 0) {
-                    forEachMove(opponent_state, [&res](const auto& m, const auto&) {
-                        res.moves.push_back(m);
-                    });
+                    try {
+                        forEachMove(opponent_state, [&res](const auto& m, const auto&) {
+                            res.move = m;
+                            throw Abort{};
+                        });
+                    } catch (Abort&) {
+                    }
                 }
-                auto& move = moves[std::uniform_int_distribution<size_t>{0, res.moves.size() - 1}(rng)];
-
                 std::cerr << "Attacker: " << depth << " " << score << " " << move << std::endl;
                 std::cout << move.points.size() << ' ' << move.n;
                 for (auto& p : move.points) {
