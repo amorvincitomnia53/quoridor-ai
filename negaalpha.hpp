@@ -7,6 +7,11 @@
 #include <random>
 #include <vector>
 
+#ifndef NORANDOM
+std::random_device rd;
+std::mt19937 rng(rd());
+#endif
+
 using TScore = int;                 //! 評価関数の値の型
 constexpr TScore INF = 2000000000;  //! 評価関数で「勝利確定」「敗北確定」を表すのに使う
 
@@ -83,12 +88,17 @@ void forEachSortedNextMoves(const TState& state, const FEval& eval, const F& fun
     }
 }
 
+#ifdef NORANDOM
+constexpr bool no_random = true;
+#else
+constexpr bool no_random = false;
+#endif
 
 /*!
  * 最上階層以外は結果にはスコアだけしか必要ないので、Moveを保存しないことで最適化されることを期待する
  * @tparam first 最上階層かどうかを指定する
  */
-template <class TState, bool first = true>
+template <class TState, bool toplevel = true>
 struct Result {
     void setDepth(int depth)
     {
@@ -96,26 +106,62 @@ struct Result {
     }
     int depth;
     TScore score;
+#ifdef NORANDOM
     Move<TState> move;
-    void setMove(const Move<TState>& move)
+    void setMove(const Move<TState>& move, bool same = false)
     {
+        if (same)
+            return;
         this->move = move;
     }
+    Move<TState> getMove()
+    {
+        return this->move;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Result& res)
+    {
+        os << "Depth: " << res.depth << " Move: " << res.move << " Score: " << res.score;
+        return os;
+    }
+
+#else
+    std::vector<Move<TState>> move;
+    void setMove(const Move<TState>& move, bool same = false)
+    {
+        if (!same)
+            this->move.clear();
+        this->move.push_back(move);
+    }
+    Move<TState> getMove()
+    {
+        return this->move[std::uniform_int_distribution{0, int(this->move.size()) - 1}(rng)];
+    }
+    friend std::ostream& operator<<(std::ostream& os, const Result& res)
+    {
+        os << "Depth: " << res.depth << " Move: {";
+        for (auto& m : res.move) {
+            os << "(" << m << "), ";
+        }
+        os << "} Score: " << res.score;
+        return os;
+    }
+#endif
 };
 
 template <class TState>
 struct Result<TState, false> {
     TScore score;
     void setDepth(int) {}
-    void setMove(const Move<TState>&) {}
+    void setMove(const Move<TState>&, bool /*same*/ = false) {}
 };
 
 
 int verbose_depth = -1;
 int verbose_search_depth = -1;
 
-template <bool first_, class TState, class FEval, class FStop>
-Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore score0, int depth, TScore alpha, TScore beta, bool is_best_path, const FStop& stop)
+template <bool toplevel, class TState, class FEval, class FStop>
+Result<TState, toplevel> negascout(const TState& state, const FEval& eval, TScore score0, int depth, TScore alpha, TScore beta, bool is_best_path, const FStop& stop)
 {
 
 #ifdef NOVERBOSE
@@ -126,7 +172,7 @@ Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore 
         std::cout << depth << "/" << search_depth << ">" << __VA_ARGS__ << std::flush; \
     }
 #endif
-    Result<TState, first_> ret = {};
+    Result<TState, toplevel> ret = {};
     ret.setDepth(search_depth);
     if (std::abs(score0) == INF || depth == search_depth) {
         ret.score = score0;
@@ -163,6 +209,8 @@ Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore 
                                   << std::endl;
                     }
 #endif
+                } else if (ret.score == score) {
+                    ret.setMove(m, true);
                 }
             };
 
@@ -177,6 +225,8 @@ Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore 
                                         << "scout: " << m << ": " << score << '\n');
             if (alpha < score || first) {
                 alpha = score;
+                if constexpr (no_random && toplevel)
+                    alpha = score - 1;
 
                 score = -negascout<false>(next_state, eval, eval_score, depth + 1, -beta, -alpha, is_best, stop).score;
 
@@ -185,8 +235,11 @@ Result<TState, first_> negascout(const TState& state, const FEval& eval, TScore 
                     DEBUG((is_best ? '*' : ' ') << std::string(depth + 1, '\t') << "[" << index << "]" << m << ": " << score << "+ beta cut\n\n");
                     return false;
                 }
-                if (alpha < score)
+                if (alpha < score) {
                     alpha = score;
+                    if constexpr (no_random && toplevel)
+                        alpha = score - 1;
+                }
             }
             registerBestMove(m, score);
             DEBUG((is_best ? '*' : ' ') << std::string(depth + 1, '\t') << "[" << index << "]" << m << ": " << score << "\n\n");

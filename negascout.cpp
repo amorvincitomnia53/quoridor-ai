@@ -9,10 +9,6 @@
 #include <sstream>
 
 
-std::random_device rd;
-std::mt19937 rng(rd());
-
-
 int main(int argc, const char** argv)
 {
     std::ios_base::sync_with_stdio(false);
@@ -57,15 +53,17 @@ int main(int argc, const char** argv)
                         return false;
 #endif
                     });
-                std::cout << "Depth: " << i << " Move: " << res.move << " Score: " << res.score << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
+
+                std::cout << res << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
             }
         } catch (Abort&) {
         }
 
 
-        std::cout << "Depth: " << res.depth << " Move: " << res.move << " Score: " << res.score << std::endl;
+        auto m = res.getMove();
+        std::cout << m << std::endl;
 
-        out << res.move << std::endl;
+        out << m << std::endl;
     }
     return 0;
 }
