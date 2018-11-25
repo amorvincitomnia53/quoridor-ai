@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
-project(codefes)
+project(quiridor)
 
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -march=native)
-add_executable(main main.cpp)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -D_GLIBCXX_DEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -DNDEBUG -DNOVERBOSE")
+add_executable(negascout negascout.cpp)
 add_executable(interactive interactive.cpp)
-add_executable(greedy greedy.cpp)
+add_executable(judge judge.cpp)

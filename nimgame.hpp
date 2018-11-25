@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+//! Nimの状態クラスなど(negascoutのテスト用)
 struct Nim {
 
     template <int turn = 0>
@@ -30,12 +31,12 @@ struct Nim {
         }
 
         template <class F>
-        friend void forEachMove(const State& state, const F& func)
+        void forEachMove(const F& func)
         {
             for (int i = 0; i <= 2; i++) {
                 for (int j = 1; j <= state.x[i]; j++) {
                     NextState s;
-                    s.x = state.x;
+                    s.x = x;
                     s.x[i] -= j;
                     func(NextMove{i, j}, s);
                 }
