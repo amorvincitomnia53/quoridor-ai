@@ -87,6 +87,7 @@ int main(int argc, const char** argv)
         auto ns = s.move(m);
         if (!ns.has_value()) {
             std::cout << "Invalid move: " << m << std::endl;
+            break;
         } else {
             turn = 1 - turn;
             s = *ns;
