@@ -51,6 +51,9 @@ $ ./negascout (入力パイプ) (出力パイプ)
 ## AIの種類
 * negascout: 愚直なnegascout。計算時間は1sとしている。同じ評価値の手はランダムで打つ。
 * negascout-deterministic: negascoutとほぼ同じだが、同じ評価値の手は初めて見た手以外は無視することで枝刈りの条件をわずかに厳しくして高速化している。
+* negascout-fast: 工夫して速くしたnegascout。同じ評価値の手はランダムで打つが、評価関数が荒いのか、ランダムにすると極めて弱くなる。
+* negascout-fast-deterministic: negascout-fastと同じだが、初めて見立て以外は無視する。なぜかdetreministicじゃないやつより強い。
 * interactive: 人間がAIになりきる。
+
 
 
