@@ -442,6 +442,7 @@ std::ostream& operator<<(std::ostream& os, const State& s)
 
 std::istream& operator>>(std::istream& is, State& s)
 {
+    s = {};
     is >> s.my_pos >> s.opponent_pos >> s.my_rem_walls >> s.opponent_rem_walls;
     for (int y = 0; y < N - 1; y++) {
         for (int x = 0; x < N - 1; x++) {

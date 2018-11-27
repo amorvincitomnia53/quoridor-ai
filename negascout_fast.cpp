@@ -52,7 +52,7 @@ int main(int argc, const char** argv)
                         //                        std::cout << state.pretty() << std::endl
                         //                                  << my_dist << " " << opp_dist << " " << opp_dist - my_dist << std::endl;
                         auto cube = [](auto x) { return x * x * x; };
-                        return ((opp_dist - my_dist) * 100000 + (s.my_rem_walls - s.opponent_rem_walls) * 140023);  // * 4 + s.my_rem_walls * 1 + cube(s.my_rem_walls - s.opponent_rem_walls);
+                        return ((opp_dist - my_dist) * 100000 + cube(s.my_rem_walls - s.opponent_rem_walls) * 30023);  // * 4 + s.my_rem_walls * 1 + cube(s.my_rem_walls - s.opponent_rem_walls);
                     },
                     i,
                     i - 1,

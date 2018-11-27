@@ -72,11 +72,11 @@ struct HashTable {
 
 template <class TState>
 struct HashBuf {
-    HashTable hash_buffer[2];
-    HashTable* read_buf = &hash_buffer[0];
-    HashTable* write_buf = &hash_buffer[1];
-    HashTable& readBuf() { return *read_buf; }
-    HashTable& writeBuf() { return *write_buf; }
+    HashTable<TState> hash_buffer[2];
+    HashTable<TState>* read_buf = &hash_buffer[0];
+    HashTable<TState>* write_buf = &hash_buffer[1];
+    HashTable<TState>& readBuf() { return *read_buf; }
+    HashTable<TState>& writeBuf() { return *write_buf; }
 
     void swap()
     {
