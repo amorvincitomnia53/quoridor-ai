@@ -319,6 +319,7 @@ struct BitBoard {
     }
 };
 
+
 //@formatter:off
 // clang-format off
 constexpr BitBoard my_goal{
@@ -833,6 +834,15 @@ std::istream& operator>>(std::istream& is, State& s)
     }
     return is;
 }
-
+template <class T, class SFINAE = std::enable_if_t<sizeof(State) % sizeof(uint64_t) == 0>>
+static constexpr uint32_t hash(const T& s)
+{
+    const uint64_t* ptr = reinterpret_cast<const uint64_t*>(&s);
+    uint64_t temp = 0;
+    for (int i = 0; i < int(sizeof(State) / sizeof(uint64_t)); i++) {
+        temp ^= ptr[i];
+    }
+    return uint32_t(temp) ^ uint32_t(temp >> 32);
+}
 
 }  // namespace QuoridorFast

@@ -1,9 +1,11 @@
 #pragma once
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -26,6 +28,62 @@ struct Abort {
 
 int search_depth = -1;  //! 現在の探索深度
 int table_depth = -1;   //! 最良手優先探索用のテーブルをどこまで見るか(反復深化を使う場合、前回の探索の深度を入れる。)
+int16_t turn_id = 0;
+template <class TState>
+struct HashTable {
+    struct HashEntry {  // 48 bytes
+        TState state;
+        int16_t search_depth;
+        int16_t turn_id;
+        TScore score;
+    };
+    static constexpr uint32_t HASH_N = 20000003;
+    std::array<HashEntry, HASH_N> data;
+    static uint32_t index(const TState& state)
+    {
+        uint32_t hash = TState::hash(state);
+        return hash % HASH_N;
+    }
+    void push(const TState& state, TScore score, int16_t search_depth)
+    {
+        HashEntry& entry = data[index(state)];
+        if (entry.turn_id == ::turn_id && entry.search_depth == search_depth) {
+            if (entry.score < score) {
+                entry.state = state;
+                entry.score = score;
+            }
+
+        } else {
+            entry.state = state;
+            entry.score = score;
+            entry.search_depth = search_depth;
+            entry.turn_id = ::turn_id;
+        }
+    }
+    std::optional<TScore> get(const TState& state, int16_t search_depth)
+    {
+        HashEntry& entry = data[index(state)];
+        if (entry.turn_id == ::turn_id && entry.search_depth == search_depth) {
+            return entry.score;
+        }
+        return std::nullopt;
+    }
+};
+
+template <class TState>
+struct HashBuf {
+    HashTable hash_buffer[2];
+    HashTable* read_buf = &hash_buffer[0];
+    HashTable* write_buf = &hash_buffer[1];
+    HashTable& readBuf() { return *read_buf; }
+    HashTable& writeBuf() { return *write_buf; }
+
+    void swap()
+    {
+        std::swap(read_buf, write_buf);
+    }
+};
+
 
 constexpr int MAX_DEPTH = 40;
 int best_path_table[MAX_DEPTH][MAX_DEPTH];  //! 最良手優先探索用のテーブル。最終的にはbest_path_table[0][...]に最良手のインデックスが集まってくる。
