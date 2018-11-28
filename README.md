@@ -110,6 +110,14 @@ $ ./(あなたのAIプログラム) < input-pipe1 > output-pipe1
 * interactive: 人間がAIになりきる。
 
 
+## 付属のヘッダファイル
+ゲーム盤に対する基本的な操作はヘッダファイルにまとめてあり、新規プログラムから利用することができる。
+
+* quoridor.hpp: 盤面に対する操作を提供する。愚直だが、わかりやすい。judgeやtcp-pipeなどでも使われている。
+* negaalpha.hpp: NegaScoutアルゴリズムが実装されている。
+* quoridor-fast.hpp: 盤面に対する操作を提供する。ビット演算を用いて高速化されている。
+
+
 
 
 
