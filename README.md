@@ -7,6 +7,13 @@ $ sudo apt install libboost1.65-dev libboost-system1.65-dev cmake
 ```
 $ ./make.sh
 ```
+もしくは、明示的に次のようにビルドする。
+```
+$ mkdir build
+$ cd build
+$ cmake .. -DCMAKE_BUILD_TYPE=Release
+$ make
+```
 
 ## 入出力形式
 AIの入出力は標準入出力で行う。
@@ -46,6 +53,8 @@ $ ./judge.sh (先手のAIプログラム) (後手のAIプログラム)
 ```
 $ ./judge.sh negascout negascout
 ```
+
+judge.shでは、AIプログラムはbuildディレクトリからの相対パスで指定する。
 
 それぞれのAIとjudgeの標準エラー出力を別ターミナルに分けたい場合は、次のようなコマンドを別のターミナルで実行する。
 ```
