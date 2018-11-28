@@ -12,26 +12,19 @@
 int main(int argc, const char** argv)
 {
     std::ios_base::sync_with_stdio(false);
-    if (argc != 3) {
-        std::cerr << "Usage: interactive <in-path> <out-path>" << std::endl;
-        return 1;
-    }
-    std::ifstream in(argv[1]);
-
-    std::ofstream out(argv[2]);
 
     verbose_depth = 4;
     verbose_search_depth = 7;
     while (true) {
         QuoridorFast::State s{};
-        in >> s;
+        std::cin >> s;
 
-        if (in.eof()) {
+        if (std::cin.eof()) {
             std::cerr << "in.eof()" << std::endl;
             return 0;
         }
-        std::cout << s << "\n\n";
-        std::cout << s.pretty() << '\n';
+        std::cerr << s << "\n\n";
+        std::cerr << s.pretty() << '\n';
 
         auto start_time = std::chrono::steady_clock::now();
         Result<QuoridorFast::State> res = {};
@@ -49,7 +42,7 @@ int main(int argc, const char** argv)
                             return INF;
                         int my_dist = myps + state.my_pos.y;
                         int opp_dist = oppps + QuoridorFast::N - 1 - state.opponent_pos.y;
-                        //                        std::cout << state.pretty() << std::endl
+                        //                        std::cerr << state.pretty() << std::endl
                         //                                  << my_dist << " " << opp_dist << " " << opp_dist - my_dist << std::endl;
                         auto cube = [](auto x) { return x * x * x; };
                         return ((opp_dist - my_dist) * 100000 + cube(s.my_rem_walls - s.opponent_rem_walls) * 30023);  // * 4 + s.my_rem_walls * 1 + cube(s.my_rem_walls - s.opponent_rem_walls);
@@ -64,16 +57,16 @@ int main(int argc, const char** argv)
 #endif
                     });
 
-                std::cout << res << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
+                std::cerr << res << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
             }
         } catch (Abort&) {
         }
 
 
         auto m = res.getMove();
-        std::cout << m << std::endl;
+        std::cerr << m << std::endl;
 
-        out << m << std::endl;
+        std::cout << m << std::endl;
     }
     return 0;
 }

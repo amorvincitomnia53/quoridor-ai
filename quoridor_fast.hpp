@@ -413,13 +413,9 @@ constexpr BitBoard flipWalls(const BitBoard& walls)
     return ret;
 }
 
-std::function<void(const BitBoard&)> print;
 constexpr int potentialSearch(const BitBoard& hfullwall, const BitBoard& vfullwall, const BitBoard& start, const BitBoard& goal)
 {
     int cost = 0;
-    //    std::cout << "start, goal" << std::endl;
-    //    print(start);
-    //    print(goal);
 
     auto pullDown = [&](const auto& p1) {
         return ((~(~hfullwall & p1).paraAdd(~hfullwall)) ^ hfullwall) | p1;  // 下に引っ張る(コスト0)
@@ -435,20 +431,12 @@ constexpr int potentialSearch(const BitBoard& hfullwall, const BitBoard& vfullwa
     BitBoard p1{};
     BitBoard p2{};
 
-    //    std::cout << "p0,p1,p2" << std::endl;
-    //    print(p0);
-    //    print(p1);
-    //    print(p2);
 
     auto oneRound = [&](auto& p0, auto& p1, auto& out) {
         if (check(p0))
             return true;
         auto temp = addCost(p0, p1);
-        //        std::cout << "temp" << std::endl;
-        //        print(temp);
         out = pullDown(temp);
-        //        std::cout << "out" << std::endl;
-        //        print(out);
         if (out == p1) {
             cost = -1;
             return true;

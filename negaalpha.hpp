@@ -227,7 +227,7 @@ Result<TState, toplevel> negascout(const TState& state, const FEval& eval, TScor
 #else
 #define DEBUG(...)                                                                     \
     if (depth <= verbose_depth && search_depth <= verbose_search_depth) {              \
-        std::cout << depth << "/" << search_depth << ">" << __VA_ARGS__ << std::flush; \
+        std::cerr << depth << "/" << search_depth << ">" << __VA_ARGS__ << std::flush; \
     }
 #endif
     Result<TState, toplevel> ret = {};
@@ -258,12 +258,12 @@ Result<TState, toplevel> negascout(const TState& state, const FEval& eval, TScor
                     if (depth <= verbose_depth && search_depth <= verbose_search_depth) {
                         for (int i = 0; i < search_depth; i++) {
                             if (i < depth) {
-                                std::cout << "* ";
+                                std::cerr << "* ";
                             } else {
-                                std::cout << best_path_table[depth][i] << " ";
+                                std::cerr << best_path_table[depth][i] << " ";
                             }
                         }
-                        std::cout << '\n'
+                        std::cerr << '\n'
                                   << std::endl;
                     }
 #endif
@@ -330,6 +330,6 @@ auto iterativeDeepeningNegascout(const TState& state, const FEval& eval, int dep
     table_depth = last_depth;
     //    return negascout<true>(state, eval, eval(state), 0, -INF, INF, true, stop);
     auto ret = negascout<true>(state, eval, eval(state), 0, -INF, INF, true, stop);
-    //    std::cout << std::endl;
+    //    std::cerr << std::endl;
     return ret;
 }

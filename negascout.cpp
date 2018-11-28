@@ -12,26 +12,25 @@
 int main(int argc, const char** argv)
 {
     std::ios_base::sync_with_stdio(false);
-    if (argc != 3) {
-        std::cerr << "Usage: interactive <in-path> <out-path>" << std::endl;
-        return 1;
-    }
-    std::ifstream in(argv[1]);
-
-    std::ofstream out(argv[2]);
+    //    if (argc != 3) {
+    //        std::cerr << "Usage: interactive <in-path> <out-path>" << std::endl;
+    //        return 1;
+    //    }
+    //    std::ifstream in(argv[1]);
+    //    std::ofstream out(argv[2]);
 
     verbose_depth = 4;
     verbose_search_depth = 7;
     while (true) {
         Quoridor::State s{};
-        in >> s;
+        std::cin >> s;
 
-        if (in.eof()) {
+        if (std::cin.eof()) {
             std::cerr << "in.eof()" << std::endl;
             return 0;
         }
-        std::cout << s << "\n\n";
-        std::cout << s.pretty() << '\n';
+        std::cerr << s << "\n\n";
+        std::cerr << s.pretty() << '\n';
 
         auto start_time = std::chrono::steady_clock::now();
         Result<Quoridor::State> res = {};
@@ -54,16 +53,16 @@ int main(int argc, const char** argv)
 #endif
                     });
 
-                std::cout << res << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
+                std::cerr << res << " @ " << (std::chrono::steady_clock::now() - start_time).count() / 1.0e6 << "ms" << std::endl;
             }
         } catch (Abort&) {
         }
 
 
         auto m = res.getMove();
-        std::cout << m << std::endl;
+        std::cerr << m << std::endl;
 
-        out << m << std::endl;
+        std::cout << m << std::endl;
     }
     return 0;
 }

@@ -13,6 +13,6 @@ if [ ! -p output-pipe2 ]; then
 fi
 
 
-./$1 input-pipe1 output-pipe1&
-./$2 input-pipe2 output-pipe2&
+./$1 < input-pipe1 > output-pipe1&
+./$2 < input-pipe2 > output-pipe2&
 ./judge output-pipe1 input-pipe1 output-pipe2 input-pipe2

@@ -6,19 +6,17 @@
 namespace asio = boost::asio;
 using asio::ip::tcp;
 
-int main()
+int main(int argc, const char** argv)
 {
 
+    if (argc != 2) {
+        std::cerr << "Usage: tcp_pipe <Server IP Address>" << std::endl;
+        return 1;
+    }
+
+    std::cerr << "Connecing to " << argv[1] << "..." << std::endl;
     boost::asio::io_service io_service;
-
-
-    tcp::iostream s("157.82.205.48", "8080");
-    // タイムアウト設定
-    //    s(boost::posix_time::seconds(10));
-
-    boost::system::error_code ec;
-
-
+    tcp::iostream s(argv[1], "8080");
     if (!s) {
         std::cerr << "error: " << s.error().message() << std::endl;
     } else {

@@ -16,11 +16,20 @@ int main(int argc, const char** argv)
     std::signal(SIGABRT, [](int) { exit(0); });
     std::signal(SIGINT, [](int) { exit(0); });
 
-    if (argc != 5) {
+    if (argc != 5 && argc != 6) {
         std::cerr << "Usage: interactive <out-path1> <in-path1> <out-path2> <in-path2>" << std::endl;
         return 1;
     }
 
+    bool sustain_mode = false;
+    if (argc == 6 && argv[5] == std::string("-s")) {
+        sustain_mode = true;
+        std::cerr << "Sustain mode: On" << std::endl;
+    } else if (argc == 6) {
+        std::cerr << "Unrecognized option: " << argv[5] << std::endl;
+    } else {
+        std::cerr << "Sustain mode: Off" << std::endl;
+    }
     std::array<std::ofstream, 2> in{std::ofstream{argv[2]}, std::ofstream{argv[4]}};
     std::array<std::ifstream, 2> out{std::ifstream{argv[1]}, std::ifstream{argv[3]}};
 
@@ -40,21 +49,26 @@ int main(int argc, const char** argv)
         std::cout << s.pretty(turn == 1) << std::endl;
         undo_buffer.push_back(s);
         if (s.lose()) {
-            std::cout << "====================================" << std::endl;
-            std::cout << "====================================" << std::endl;
-            std::cout << "Player " << 1 - turn << " wins!!" << std::endl;
-            while (true) {
-                std::string line;
-                std::getline(out[turn], line);
-                std::cout << line << std::endl;
+            if (sustain_mode) {
+                std::cout << "====================================" << std::endl;
+                std::cout << "====================================" << std::endl;
+                std::cout << "Player " << 1 - turn << " wins!!" << std::endl;
 
-                if (line == "UNDO") {
-                    if (undo_buffer.size() >= 2) {
-                        undo_buffer.resize(undo_buffer.size() - 2);
-                        s = undo_buffer.back();
+                while (true) {
+                    std::string line;
+                    std::getline(out[turn], line);
+                    std::cout << line << std::endl;
+
+                    if (line == "UNDO") {
+                        if (undo_buffer.size() >= 2) {
+                            undo_buffer.resize(undo_buffer.size() - 2);
+                            s = undo_buffer.back();
+                        }
+                        goto back;
                     }
-                    goto back;
                 }
+            } else {
+                break;
             }
         }
         //break;

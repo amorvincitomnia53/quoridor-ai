@@ -13,7 +13,6 @@ int main(int argc, const char** argv)
         return 1;
     }
     std::ifstream in(argv[1]);
-
     std::ofstream out(argv[2]);
     while (true) {
         Quoridor::State s;

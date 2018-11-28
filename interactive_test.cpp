@@ -15,7 +15,6 @@ int main(int argc, const char** argv)
         return 1;
     }
     std::ifstream in(argv[1]);
-
     std::ofstream out(argv[2]);
     while (true) {
         QuoridorFast::State s;
@@ -25,9 +24,9 @@ int main(int argc, const char** argv)
             std::cerr << "in.eof()" << std::endl;
             return 0;
         }
-        QuoridorFast::print = [&](const QuoridorFast::BitBoard& bb) {
-            s.printWith(std::cout, bb);
-        };
+        //        QuoridorFast::print = [&](const QuoridorFast::BitBoard& bb) {
+        //            s.printWith(std::cout, bb);
+        //        };
         std::cout << s.pretty() << std::endl;
         //        s.forEachMove([&](const QuoridorFast::State::NextMove& move, const QuoridorFast::State& state) {
         //            int myps = QuoridorFast::potentialSearch(state.hFullWall(), state.vFullWall(), QuoridorFast::my_goal, QuoridorFast::BitBoard::oneHot(state.my_pos));
