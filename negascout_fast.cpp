@@ -29,9 +29,16 @@ int main(int argc, const char** argv)
         auto start_time = std::chrono::steady_clock::now();
         Result<QuoridorFast::State> res = {};
         try {
-            for (int i = 1; i <= 20; i++) {
+            for (int i = 1; i <=
+#ifdef NDEBUG
+                            20
+#else
+                            2
+#endif
+                 ;
+                 i++) {
                 res = iterativeDeepeningNegascout(s,
-                    [&](const QuoridorFast::State& state) {
+                    [](const QuoridorFast::State& state) {
                         if (state.lose())
                             return -INF;
                         auto hfullwall = state.hFullWall();
@@ -44,8 +51,18 @@ int main(int argc, const char** argv)
                         int opp_dist = oppps + QuoridorFast::N - 1 - state.opponent_pos.y;
                         //                        std::cerr << state.pretty() << std::endl
                         //                                  << my_dist << " " << opp_dist << " " << opp_dist - my_dist << std::endl;
-                        auto cube = [](auto x) { return x * x * x; };
-                        return ((opp_dist - my_dist) * 100000 + cube(s.my_rem_walls - s.opponent_rem_walls) * 30023);  // * 4 + s.my_rem_walls * 1 + cube(s.my_rem_walls - s.opponent_rem_walls);
+                        //auto wall_func = [](int x) { return int(std::log(x + 0.3) * 8 * 100000); };
+                        auto wall_func = [](int self, int opponent) {
+                            return int(std::tanh(opponent * 0.3) * (1.2 * self - 4.0 / (self + 0.3)) * 100000);
+                        };
+                        /*if(s.my_rem_walls != s.opponent_rem_walls)
+                            std::cerr<<s.my_rem_walls << s.opponent_rem_walls
+                            <<" " <<cube(s.my_rem_walls - s.opponent_rem_walls)* 100023
+                            << " " << ((opp_dist - my_dist) * 100000 + cube(s.my_rem_walls - s.opponent_rem_walls) * 100023)<<std::endl;
+                        */
+
+
+                        return ((opp_dist - my_dist) * 100000 + wall_func(state.my_rem_walls, state.opponent_rem_walls) - wall_func(state.opponent_rem_walls, state.my_rem_walls));  // * 4 + s.my_rem_walls * 1 + cube(s.my_rem_walls - s.opponent_rem_walls);
                     },
                     i,
                     i - 1,

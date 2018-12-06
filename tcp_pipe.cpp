@@ -35,6 +35,8 @@ int main(int argc, const char** argv)
             std::cout << state;
             std::string str;
             std::cin >> str;
+            if (std::cin.eof())
+                return 0;
             if (str == "MOVE") {
                 int x, y;
                 std::cin >> x >> y;

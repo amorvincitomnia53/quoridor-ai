@@ -691,8 +691,12 @@ struct State {
 
         flipped.opponent_pos = Position{my_pos.x, int8_t(N - 1 - my_pos.y)};
         if (my_rem_walls > 0) {
+            flipped.opponent_rem_walls--;
             auto call = [&func](WallDirection dir, Position p, const State& bb) {
                 NextMove m = Put{dir, p};
+#ifndef NDEBUG
+                std::cerr << bb.my_rem_walls << " " << bb.opponent_rem_walls << std::endl;
+#endif
                 func(m, bb);
             };
 
